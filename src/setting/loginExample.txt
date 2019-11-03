@@ -1,2 +1,0 @@
-[username]
-[twitch oauth token (prefixed with oauth:)]
