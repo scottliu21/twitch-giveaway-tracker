@@ -8,13 +8,17 @@ class ChatThread(threading.Thread):
         self.messageProcessor = channelChat.messageProcessor
         self.userList = channelChat.chatTab.userList
         self.daemon = True
+        self.enabled = True
         self.messageToBeProcessed = Queue()
         self.setName(channelName + 'MessageProcessorThread')
+
+    def stopThread(self):
+        self.enabled = False
 
     def processMessage(self, message):
         self.messageToBeProcessed.put(message)
 
     def run(self):
-        while True:
+        while self.enabled:
             message = self.messageToBeProcessed.get()
             self.messageProcessor.processMessage(message, self.channelChat, self.userList)

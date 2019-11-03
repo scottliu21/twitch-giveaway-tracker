@@ -2,35 +2,68 @@ import socket
 import threading
 import time
 import re
+from GUI.SubWindows.LoginDialog import LoginDialog
 from Util.SystemMessageProcessor import SystemMessageProcessor
 
 
 class ClientIRC:
     def __init__(self, chatScreen):
-        file = open('setting/login', 'r')
-        self.nickname = file.readline()
-        self.password = file.readline()
-        file.close()
+        self.nickname = ""
+        self.password = ""
+        self.refreshToken = ""
+        self.refreshTimer = 0
+
+        self.chatScreen = chatScreen
+        if not LoginDialog.hasLoginCompleted():
+            LoginDialog(self)
+            if not LoginDialog.hasLoginCompleted():
+                self.chatScreen.chatUI.centralWidget.mainWindow.close()
+        else:
+            self.nickname, self.password, self.refreshToken = LoginDialog.getLogin()
         self.receiveSocket = socket.socket()
         self.sendSocket = socket.socket()
         self.receiveSocketRunning = False
-        self.chatScreen = chatScreen
         self.systemMessageProcessor = SystemMessageProcessor(self.chatScreen)
         self.systemMessageThread = self.systemMessageProcessor.systemMessageThread
         self.isHoldingMessage = False
         self.heldMessage = ''
         self.channelMessagePattern = re.compile('.*PRIVMSG (#[^ ]*) :')
 
+    def openLogin(self):
+        old_nickname = self.nickname
+        LoginDialog(self)
+        if old_nickname != self.nickname:
+            while self.chatScreen.count() > 0:
+                self.chatScreen.closeTab(False)
+            self.nickname, self.password, self.refreshToken = LoginDialog.readLoginFile()
+            self.reLogin()
+            self.chatScreen.joinDefaultChannel()
+        pass
+
+    def closeClientIRC(self):
+        self.systemMessageThread.stopThread()
+        self.systemMessageThread.newMessage("")
+        self.systemMessageThread.join()
+        self.receiveSocketRunning = False
+        self.receiveSocket.close()
+        self.receiveThread.join()
+        self.sendSocket.close()
+
+    def reLogin(self):
+        self.closeClientIRC()
+        self.receiveSocket = socket.socket()
+        self.sendSocket = socket.socket()
+        self.start()
+
+
     def start(self):
         self.activateSocket(self.receiveSocket)
         self.activateSocket(self.sendSocket)
         self.receiveSocketRunning = True
-
         response = self.receiveSocket.recv(1024).decode('utf-8')
         if response == ':tmi.twitch.tv NOTICE * :Login authentication failed\r\n':
             self.stop()
             raise RuntimeError('Login authentication failed')
-
         self.receiveThread = threading.Thread(target=self.receivingMessage)
         self.receiveThread.setDaemon(True)
         self.receiveThread.setName('receiveThread')

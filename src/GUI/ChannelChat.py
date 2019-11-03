@@ -25,6 +25,11 @@ class ChannelChat(QTextBrowser):
             self.setStyleSheet(cssFile.read())
         #add wheel event
 
+    def closeChat(self):
+        self.chatThread.stopThread()
+        self.chatThread.messageToBeProcessed.put("")
+        self.chatThread.join()
+
     def checkClick(self, link):
         print(link.toString())
 

@@ -1,7 +1,2 @@
-certifi
-chardet
-idna
 requests
-urllib3
 PyQt5
-PyQt5-sip

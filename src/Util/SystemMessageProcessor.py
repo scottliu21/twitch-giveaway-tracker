@@ -30,8 +30,9 @@ class SystemMessageProcessor:
             parsedResult.append(result)
             if result.group('username') + '\n' != self.chatScreen.clientIRC.nickname:
                 chatTab = self.chatScreen.tabs.get('#' + result.group('channel'))
-                if chatTab.userList.nickList.get(result.group('username'), None):
-                    chatTab.userList.removeUser(chatTab.userList.nickList[result.group('username')], True)
+                if chatTab:
+                    if chatTab.userList.nickList.get(result.group('username'), None):
+                        chatTab.userList.removeUser(chatTab.userList.nickList[result.group('username')], True)
         elif ' JOIN ' in message:
             parsedResult.append("Join")
             result = re.search(SystemMessageProcessor.JOIN_MESSAGE, message)
@@ -84,6 +85,5 @@ class SystemMessageProcessor:
             self.chatScreen.clientIRC.userID = result.group(3)
         else:
             print(message)
-
 
 

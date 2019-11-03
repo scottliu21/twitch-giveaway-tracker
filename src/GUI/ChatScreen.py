@@ -13,6 +13,7 @@ class ChatScreen(QTabWidget):
     def __init__(self, parent):
         super(ChatScreen, self).__init__(parent)
         self.showMessage = True
+        self.chatUI = parent
         file = open('setting/MainSetting', 'r')
         self.font = QFont(file.readline()[:-1], int(file.readline()[:-1]), -1, False)
         file.close()
@@ -21,13 +22,16 @@ class ChatScreen(QTabWidget):
         self.clientIRC = ClientIRC(self)
         self.clientIRC.start()
         self.setAutoFillBackground(True)
+        self.joinDefaultChannel()
+        QShortcut(QKeySequence('Ctrl+Tab'), self, self.nextTab)
+        QShortcut(QKeySequence('Ctrl+W'), self, self.closeTabOrExit)
+        self.newWhisperSignal.connect(self.newWhisper)
+
+    def joinDefaultChannel(self):
         default_channel = open('setting/default_channel', 'r')
         for line in default_channel:
             self.joinChannel(line.replace('\n', ''))
         default_channel.close()
-        QShortcut(QKeySequence('Ctrl+Tab'), self, self.nextTab)
-        QShortcut(QKeySequence('Ctrl+W'), self, self.closeTab)
-        self.newWhisperSignal.connect(self.newWhisper)
 
     def joinChannel(self, channelName):
         chatTab = self.tabs.get('#' + channelName, None)
@@ -58,11 +62,18 @@ class ChatScreen(QTabWidget):
         else:
             self.setCurrentIndex(self.currentIndex() + 1)
 
-    def closeTab(self):
+    def closeTabOrExit(self):
+        self.closeTab(True)
+
+    def popAndClostTab(self):
+        if '#' in self.widget(self.currentIndex()).channelName:
+            self.clientIRC.leaveChannel(self.widget(self.currentIndex()).channelName)
+        tab = self.tabs.pop(self.widget(self.currentIndex()).channelName)
+        tab.channelChat.closeChat()
+
+    def closeTab(self, exitWhenNoTab):
         if self.count() > 1:
-            if '#' in self.widget(self.currentIndex()).channelName:
-                self.clientIRC.leaveChannel(self.widget(self.currentIndex()).channelName)
-            self.tabs.pop(self.widget(self.currentIndex()).channelName)
+            self.popAndClostTab()
             if self.currentIndex() + 1 == self.count():
                 self.setCurrentIndex(self.count() - 2)
                 self.widget(self.count() - 1).close()
@@ -71,6 +82,13 @@ class ChatScreen(QTabWidget):
                 self.setCurrentIndex(self.currentIndex() + 1)
                 self.widget(self.currentIndex() - 1).close()
                 self.removeTab(self.currentIndex() - 1)
+        elif self.count() == 1:
+            if not exitWhenNoTab:
+                self.popAndClostTab()
+                self.widget(self.currentIndex()).close()
+                self.removeTab(self.currentIndex())
+            else:
+                self.chatUI.centralWidget.mainWindow.close()
 
     def newWhisperChat(self, nick):
         whisperChat = WhisperChat(self, nick, self.clientIRC)

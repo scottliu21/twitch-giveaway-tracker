@@ -8,13 +8,17 @@ class SystemMessageThread(threading.Thread):
         self.chatScreen = chatScreen
         self.messageToBeProcessed = Queue()
         self.daemon = True
+        self.enabled = True
         self.setName('SystemMesageThread')
+
+    def stopThread(self):
+        self.enabled = False
 
     def newMessage(self, message):
         self.messageToBeProcessed.put(message)
 
     def run(self):
-        while True:
+        while self.enabled:
             message = self.messageToBeProcessed.get()
             self.systemMessageProcessor.processMessage(message)
 

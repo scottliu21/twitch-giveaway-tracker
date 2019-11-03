@@ -11,14 +11,13 @@ class MainWindow(QMainWindow):
     def __init__(self):
         if not os.path.exists(CacheManager.DIRECTORY):
             os.mkdir(CacheManager.DIRECTORY)
-        user32 = ctypes.windll.user32
         super().__init__()
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.setWindowTitle('Twitch chat')
-        self.left = user32.GetSystemMetrics(0) - 900
+        self.left = 500
         self.top = 40
         self.width = 500
-        self.height = user32.GetSystemMetrics(1) - 100
+        self.height = 900
         self.setGeometry(self.left, self.top, self.width, self.height)
         self.centralWidget = CentralWidget(self)
         self.setCentralWidget(self.centralWidget)
