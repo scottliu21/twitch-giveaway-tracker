@@ -2,8 +2,6 @@ to setup
 
 ```pip install -r requirements.txt```
 
-set up the files in src/setting following the example files, remove _example and .txt
-ie chatCSSExample.txt -> chatCSS
-default_channel_example.txt -> default_channel
+change default_channel_example.txt to default_channel, remove brackets and add the channel(s) you want to connect to upon login
 
 cd into src and run main

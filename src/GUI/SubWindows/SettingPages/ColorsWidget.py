@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QLineEdit, QVBoxLayout, QGroupBox
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QGroupBox
 
 
 class ColorsWidget(QWidget):

@@ -1,45 +1,55 @@
-import sys
-import ctypes
-from PyQt5.QtWidgets import QMainWindow, QApplication
-from PyQt5.QtCore import QPoint, Qt
-from GUI.CentralWidget import CentralWidget
-from GUI.MenuBar import MenuBar
-from Util.CacheManager import CacheManager
-import os.path
+from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QLineEdit, QVBoxLayout, QGroupBox, QGridLayout, QFontDialog
+from PyQt5.QtGui import QFont
 
-class MainWindow(QMainWindow):
-    def __init__(self):
-        if not os.path.exists(CacheManager.DIRECTORY):
-            os.mkdir(CacheManager.DIRECTORY)
-        super().__init__()
-        self.setAttribute(Qt.WA_DeleteOnClose)
-        self.setWindowTitle('Twitch chat')
-        self.left = 500
-        self.top = 40
-        self.width = 500
-        self.height = 900
-        self.setGeometry(self.left, self.top, self.width, self.height)
-        self.centralWidget = CentralWidget(self)
-        self.setCentralWidget(self.centralWidget)
+class MainWidget(QWidget):
+    def __init__(self, settingDialog):
+        super(MainWidget, self).__init__(settingDialog)
+        self.settingDialog = settingDialog
+        self.isChanged = False
+        layout = QVBoxLayout()
 
-        menu = MenuBar(self)
-        self.setMenuBar(menu)
+        file = open('setting/MainSetting', 'r')
+        chatFontGroupBox = QGroupBox(self)
+        chatFontGroupBox.setTitle("Chat Font")
+        chatFontLayout = QGridLayout()
+        chatFontLayout.addWidget(QLabel("Font Name:"), 0, 0)
+        self.chatFont = QLineEdit()
+        self.chatFont.setText(file.readline().strip())
+        self.chatFont.setEnabled(False)
+        chatFontLayout.setContentsMargins(5, 5, 5, 5)
+        chatFontLayout.addWidget(self.chatFont, 0, 1)
+        selectFontButton = QPushButton("Select Font")
+        selectFontButton.clicked.connect(self.chooseFont)
+        chatFontLayout.addWidget(selectFontButton, 1, 2)
+        chatFontLayout.addWidget(QLabel("Font Size:"), 1, 0)
+        self.chatFontSize = QLineEdit()
+        self.chatFontSize.setText(file.readline().strip())
+        self.chatFontSize.setEnabled(False)
+        chatFontLayout.addWidget(self.chatFontSize, 1, 1)
+        chatFontLayout.addWidget(QLabel("Line Spacing:"), 2, 0)
+        self.chatLineSpacing = QLineEdit()
+        self.chatLineSpacing.setText(file.readline().strip())
+        self.chatLineSpacing.setEnabled(False)
+        chatFontLayout.addWidget(self.chatLineSpacing, 2, 1)
+        chatFontGroupBox.setLayout(chatFontLayout)
+        layout.addWidget(chatFontGroupBox)
 
-        self.show()
+        self.setLayout(layout)
+        file.close()
 
-    def getPopUpPosition(self, x, y):
-        pos = self.mapToGlobal(QPoint(self.width/2, self.height/2))
-        pos -= QPoint(x / 2, y / 2)
-        return pos
+    def chooseFont(self):
+        self.isChanged = True
+        fontDialog = QFontDialog()
+        fontDialog.setCurrentFont(QFont(self.chatFont.text(), int(self.chatFontSize.text()), -1, False))
+        fontDialog.exec()
+        self.chatFont.setText(fontDialog.currentFont().family())
+        self.chatFontSize.setText(str(int(fontDialog.currentFont().pointSizeF())))
 
-    def closeEvent(self, event):
-        CacheManager.clearCache()
-        #leave all channel
-        #clear cache
-        event.accept()
-
-
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    ex = MainWindow()
-    sys.exit(app.exec_())
+    def saveSetting(self):
+        if self.isChanged:
+            file = open('setting/MainSetting', 'w')
+            file.truncate()
+            file.write(self.chatFont.text() + '\n')
+            file.write(self.chatFontSize.text() + '\n')
+            file.write(self.chatLineSpacing.text())
+            file.close()

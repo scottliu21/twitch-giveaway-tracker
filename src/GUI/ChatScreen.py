@@ -6,6 +6,7 @@ from GUI.ChatTab import ChatTab
 from Util.JSONDecoder import JSONDecoder
 from GUI.WhisperChat import WhisperChat
 from PyQt5.QtCore import pyqtSignal
+from Util.NotificationManager import NotificationManager
 
 class ChatScreen(QTabWidget):
     newWhisperSignal = pyqtSignal(str)
@@ -21,6 +22,7 @@ class ChatScreen(QTabWidget):
         self.tabs = {}
         self.clientIRC = ClientIRC(self)
         self.clientIRC.start()
+        self.notificationManager = NotificationManager(self)
         self.setAutoFillBackground(True)
         self.joinDefaultChannel()
         QShortcut(QKeySequence('Ctrl+Tab'), self, self.nextTab)
