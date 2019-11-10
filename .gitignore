@@ -1,0 +1,11 @@
+*.pyc
+src/setting/*
+src/lib/*
+src/Commands/*
+src/test.py
+src/userpoints/*
+src/database/*
+src/cache/*
+src/channellogs/*
+.idea/*
+venv/*
