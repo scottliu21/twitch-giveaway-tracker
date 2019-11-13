@@ -2,7 +2,7 @@ import socket
 import threading
 import time
 import re
-from GUI.SubWindows.LoginDialog import LoginDialog
+from GUI.SubWindows.GeneralLoginDialog import GeneralLoginDialog
 from Util.SystemMessageProcessor import SystemMessageProcessor
 
 
@@ -14,12 +14,13 @@ class ClientIRC:
         self.refreshTimer = 0
 
         self.chatScreen = chatScreen
-        if not LoginDialog.hasLoginCompleted():
-            LoginDialog(self)
-            if not LoginDialog.hasLoginCompleted():
+        if not GeneralLoginDialog.hasLoginCompleted():
+            generalDialog = GeneralLoginDialog(self)
+            generalDialog.exec()
+            if not GeneralLoginDialog.hasLoginCompleted():
                 self.chatScreen.chatUI.centralWidget.mainWindow.close()
         else:
-            self.nickname, self.password, self.refreshToken = LoginDialog.getLogin()
+            self.nickname, self.password, self.refreshToken = GeneralLoginDialog.getLogin()
         self.receiveSocket = socket.socket()
         self.sendSocket = socket.socket()
         self.receiveSocketRunning = False
@@ -30,15 +31,16 @@ class ClientIRC:
         self.channelMessagePattern = re.compile('.*PRIVMSG (#[^ ]*) :')
 
     def openLogin(self):
-        old_nickname = self.nickname
-        LoginDialog(self)
-        if old_nickname != self.nickname:
-            while self.chatScreen.count() > 0:
-                self.chatScreen.closeTab(False)
-            self.nickname, self.password, self.refreshToken = LoginDialog.readLoginFile()
-            self.reLogin()
-            self.chatScreen.joinDefaultChannel()
-        pass
+        generalLoginDialog = GeneralLoginDialog(self)
+        generalLoginDialog.accepted.connect(self.reconnect)
+        generalLoginDialog.exec()
+
+    def reconnect(self):
+        while self.chatScreen.count() > 0:
+            self.chatScreen.closeTab(False)
+        self.nickname, self.password, self.refreshToken = GeneralLoginDialog.readLoginFile()
+        self.reLogin()
+        self.chatScreen.joinDefaultChannel()
 
     def closeClientIRC(self):
         self.systemMessageThread.stopThread()

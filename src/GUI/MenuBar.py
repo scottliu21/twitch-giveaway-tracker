@@ -26,7 +26,6 @@ class MenuBar(QMenuBar):
 
     def openLogin(self):
         self.mainWindow.centralWidget.chatUI.chatScreen.clientIRC.openLogin()
-        pass
 
     def openSettings(self):
         SettingDialog(self.mainWindow)
