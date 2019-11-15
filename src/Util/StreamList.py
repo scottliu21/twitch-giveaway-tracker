@@ -34,7 +34,7 @@ def getListofStreams(gameID):
     cursor = streamData['pagination']['cursor']
     streamersList = streamData['data']
     for streamer in streamersList:
-        channels[streamer['user_name']] = streamer['title'].strip()
+        channels[streamer['user_name']] = {'viewers': streamer['viewer_count'], 'title': streamer['title'].strip()}
 
     ## Loops through to get all of the channels (using pagination) until no channels remain
     while (cursor != -1):
@@ -46,7 +46,7 @@ def getListofStreams(gameID):
             cursor = -1
         streamersList = streamData['data']
         for streamer in streamersList:
-         channels[streamer['user_name']] = streamer['title'].strip()
+         channels[streamer['user_name']] = {'viewers': streamer['viewer_count'], 'title': streamer['title'].strip()}
     return channels
 
 
