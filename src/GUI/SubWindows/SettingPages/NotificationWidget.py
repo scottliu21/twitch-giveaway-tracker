@@ -1,22 +1,22 @@
 from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QLineEdit, QHBoxLayout, QVBoxLayout, QGroupBox, QGridLayout, QFontDialog, QColorDialog, QFileDialog
 from PyQt5.Qt import QSound, QColor
 from PyQt5.QtGui import QFont
+from Util.SettingManager import SettingManager
 import os
 
 class NotificationWidget(QWidget):
     def __init__(self, settingDialog):
         super(NotificationWidget, self).__init__(settingDialog)
         self.settingDialog = settingDialog
-        self.isChanged = False
         layout = QVBoxLayout()
 
-        file = open('setting/NotificationSetting', 'r')
+        settings = SettingManager.getSettingFileContent(SettingManager.NOTIFICATION_SETTING_FILE)
         notificationFontGroupBox = QGroupBox(self)
         notificationFontGroupBox.setTitle("Notification Style")
         notificationStyleLayout = QGridLayout()
         notificationStyleLayout.addWidget(QLabel("Font Name:"), 0, 0)
         self.notificationFont = QLineEdit()
-        self.notificationFont.setText(file.readline().strip())
+        self.notificationFont.setText(settings[0])
         self.notificationFont.setEnabled(False)
         notificationStyleLayout.setContentsMargins(5, 5, 5, 5)
         notificationStyleLayout.addWidget(self.notificationFont, 0, 1)
@@ -25,7 +25,7 @@ class NotificationWidget(QWidget):
         notificationStyleLayout.addWidget(selectFontButton, 1, 2)
         notificationStyleLayout.addWidget(QLabel("Font Size:"), 1, 0)
         self.notificationFontSize = QLineEdit()
-        self.notificationFontSize.setText(file.readline().strip())
+        self.notificationFontSize.setText(settings[1])
         self.notificationFontSize.setEnabled(False)
         notificationStyleLayout.addWidget(self.notificationFontSize, 1, 1)
         notificationFontGroupBox.setLayout(notificationStyleLayout)
@@ -34,10 +34,10 @@ class NotificationWidget(QWidget):
 
         notificationStyleLayout.addWidget(QLabel("Select text color"), 2, 0)
         self.backGroundColorLineEdit = QLineEdit()
-        self.backGroundColorLineEdit.setText(file.readline().strip())
+        self.backGroundColorLineEdit.setText(settings[2])
         self.backGroundColorLineEdit.setEnabled(False)
         self.textColorLineEdit = QLineEdit()
-        self.textColorLineEdit.setText(file.readline().strip())
+        self.textColorLineEdit.setText(settings[3])
         self.textColorLineEdit.setEnabled(False)
         notificationStyleLayout.addWidget(self.textColorLineEdit, 2, 1)
         colorPickerButton = QPushButton("Pick a color")
@@ -52,7 +52,7 @@ class NotificationWidget(QWidget):
         layout.addWidget(QLabel("Select a .wav file for the notification audio"))
         audioLayout = QHBoxLayout()
         self.audioFilePathLineEdit = QLineEdit()
-        self.audioFileName = file.readline().strip()
+        self.audioFileName = settings[4]
         self.audioFilePathLineEdit.setText(self.audioFileName)
         self.audioFilePathLineEdit.setEnabled(False)
         layout.addWidget(self.audioFilePathLineEdit)
@@ -72,7 +72,6 @@ class NotificationWidget(QWidget):
         layout.addLayout(audioLayout, 5)
 
         self.setLayout(layout)
-        file.close()
 
     def updateExample(self):
         self.updateExampleColor()
@@ -90,7 +89,6 @@ class NotificationWidget(QWidget):
     def openColorPicker(self, lineEdit):
         color = QColorDialog.getColor(QColor(lineEdit.text()))
         if color.isValid() and color.name(QColor.HexRgb) != lineEdit.text():
-            self.isChanged = True
             lineEdit.setText(color.name(QColor.HexRgb))
             self.updateExample()
 
@@ -109,13 +107,11 @@ class NotificationWidget(QWidget):
     def selectAudioFile(self):
         audioFileName = QFileDialog.getOpenFileName(self, "Choose a .wav file", self.getAudioDirectory(),  "WAVE file (*.wav)")
         if audioFileName[0] != self.audioFileName:
-            self.isChanged = True
             self.audioFileName = audioFileName[0]
             self.updatePlayButton()
             self.audioFilePathLineEdit.setText(self.audioFileName)
 
     def chooseFont(self):
-        self.isChanged = True
         fontDialog = QFontDialog()
         fontDialog.setCurrentFont(QFont(self.notificationFont.text(), int(self.notificationFontSize.text()), -1, False))
         fontDialog.exec()
@@ -124,13 +120,11 @@ class NotificationWidget(QWidget):
         self.updateExampleFont(fontDialog.currentFont())
 
     def saveSetting(self):
-        if self.isChanged:
-            file = open('setting/NotificationSetting', 'w')
-            file.truncate()
-            file.write(self.notificationFont.text() + '\n')
-            file.write(self.notificationFontSize.text() + '\n')
-            file.write(self.backGroundColorLineEdit.text() + '\n')
-            file.write(self.textColorLineEdit.text() + '\n')
-            file.write(self.audioFileName + '\n')
-            file.close()
-            self.settingDialog.mainWindow.centralWidget.chatUI.chatScreen.notificationManager.updateSetting()
+        settings = []
+        settings.append(self.notificationFont.text())
+        settings.append(self.notificationFontSize.text())
+        settings.append(self.backGroundColorLineEdit.text())
+        settings.append(self.textColorLineEdit.text())
+        settings.append(self.audioFileName)
+        SettingManager.saveSetting(SettingManager.NOTIFICATION_SETTING_FILE, settings)
+        self.settingDialog.mainWindow.centralWidget.chatUI.chatScreen.notificationManager.updateSetting()

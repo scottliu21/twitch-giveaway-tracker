@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QDialog, QPushButton, QLabel , QVBoxLayout, QHBoxLayout, QLineEdit
 from PyQt5.QtCore import Qt
 from GUI.SubWindows.LoginDialog import LoginDialog
-from os import path
+from Util.SettingManager import SettingManager
 import requests
 
 class GeneralLoginDialog(QDialog):
@@ -18,10 +18,9 @@ class GeneralLoginDialog(QDialog):
         self.oauthToken = ""
         self.expire_in = 0
         self.refreshToken = ""
-        self.hasLogin = False
-        if path.exists("setting/login"):
-            self.nickname, self.oauthToken, self.refreshToken = GeneralLoginDialog.readLoginFile()
-            self.hasLogin = self.oauthToken != "" and self.nickname != "" and self.refreshToken != ""
+        self.hasLogin = SettingManager.checkLoginFilesAreCompleted()
+        if self.hasLogin:
+            [self.nickname, self.oauthToken, self.refreshToken] = SettingManager.getSettingFileContent(SettingManager.LOGIN_FILE)
         layout = QVBoxLayout()
         self.label = QLabel()
         changeAccountButton = QPushButton()
@@ -30,7 +29,6 @@ class GeneralLoginDialog(QDialog):
         self.connectButton = QPushButton()
         self.connectButton.setText('Connect')
         self.connectButton.clicked.connect(self.connect)
-        self.updateUsername()
 
         buttonLayout = QHBoxLayout()
         removeLoginButton = QPushButton()
@@ -40,13 +38,12 @@ class GeneralLoginDialog(QDialog):
         buttonLayout.addWidget(removeLoginButton)
 
         self.defaultChannelLineEdit = QLineEdit()
-        try:
-            defaultChannelFile = open('setting/default_channel', 'r')
-            self.defaultChannelLineEdit.setText(defaultChannelFile.readline().strip())
-            defaultChannelFile.close()
-        except FileNotFoundError:
+        if self.hasLogin:
+            self.defaultChannelLineEdit.setText(SettingManager.getSettingFileContent(SettingManager.DEFAULT_CHANNEL_FILE)[0])
+        else:
             self.defaultChannelLineEdit.setText("")
-
+        self.defaultChannelLineEdit.returnPressed.connect(self.connect)
+        self.defaultChannelLineEdit.textChanged[str].connect(self.enableConnectButton)
 
         layout.addWidget(self.label, 1)
         layout.addLayout(buttonLayout)
@@ -55,63 +52,50 @@ class GeneralLoginDialog(QDialog):
         layout.addWidget(self.connectButton, 1)
 
         self.setLayout(layout)
+        self.updateUsername()
 
     @staticmethod
     def refreshAccessTokenWithName(username, refreshToken):
         response = requests.post(LoginDialog.refreshTokenURL.replace("refreshToken", refreshToken))
-        GeneralLoginDialog.writeLoginFile(username, response.json()["access_token"], response.json()["refresh_token"])
-        return response.json()["access_token"], response.json()["refresh_token"]
+        return [username, response.json()["access_token"], response.json()["refresh_token"]]
 
     @staticmethod
     def refreshAccessTokenWithToken(refreshToken):
-        username, _, _ = GeneralLoginDialog.readLoginFile()
+        [username, _, _] = SettingManager.getSettingFileContent(SettingManager.LOGIN_FILE)
         return GeneralLoginDialog.refreshAccessTokenWithName(username, refreshToken)
 
     @staticmethod
     def refreshAccessToken():
-        username, _, refreshToken = GeneralLoginDialog.readLoginFile()
+        [username, _, refreshToken] = SettingManager.getSettingFileContent(SettingManager.LOGIN_FILE)
         return GeneralLoginDialog.refreshAccessTokenWithName(username, refreshToken)
 
     @staticmethod
-    def getLogin():
-        GeneralLoginDialog.refreshAccessToken()
-        return GeneralLoginDialog.readLoginFile()
-
-    @staticmethod
-    def readLoginFile():
-        file = open('setting/login', 'r')
-        nickname = file.readline().strip()
-        oauthToken = file.readline().strip()
-        refreshToken = file.readline().strip()
-        file.close()
-        return nickname, oauthToken, refreshToken
+    def reFreshTokenAndGetLogin():
+        response = GeneralLoginDialog.refreshAccessToken()
+        if response:
+            GeneralLoginDialog.writeLoginFile(response[0], response[1], response[2])
+        else:
+            return None
+        return SettingManager.getSettingFileContent(SettingManager.LOGIN_FILE)
 
     @staticmethod
     def writeLoginFile(nickname, oauthToken, refreshToken):
-        file = open('setting/login', "w")
-        file.write(nickname + "\n")
-        file.write("oauth:" + oauthToken + "\n")
-        file.write(refreshToken)
-        file.close()
-
-    @staticmethod
-    def hasLoginCompleted():
-        try:
-            nickname, oauthToken, refreshToken = GeneralLoginDialog.readLoginFile()
-            with open("setting/default_channel") as file:
-                line = file.readline().strip()
-        except FileNotFoundError:
-            return False
-        return oauthToken != "" and nickname != "" and refreshToken != "" and line != ""
+        content = []
+        content.append(nickname)
+        content.append("oauth:" + oauthToken)
+        content.append(refreshToken)
+        SettingManager.saveSetting(SettingManager.LOGIN_FILE, content)
 
     def removeLogin(self):
-        open('setting/login', 'w').close()
+        SettingManager.clearSettingFile(SettingManager.LOGIN_FILE)
         self.hasLogin = False
-        self.nickname = None
         self.updateUsername()
 
+    def enableConnectButton(self):
+        self.connectButton.setEnabled(not self.defaultChannelLineEdit.text().strip() == '' and self.hasLogin)
+
     def closeEvent(self, event):
-        if self.hasLoginCompleted():
+        if SettingManager.checkLoginFilesAreCompleted():
             if self.loginChanged:
                 self.connect()
             else:
@@ -120,22 +104,19 @@ class GeneralLoginDialog(QDialog):
             self.clientIRC.chatScreen.chatUI.centralWidget.mainWindow.close()
 
     def updateUsername(self):
-        if not self.hasLogin:
+        if self.nickname == '' or not self.hasLogin:
             self.label.setText("Currently not logged in")
         else:
             self.label.setText('Currently logged in as: ' + self.nickname)
-        self.connectButton.setEnabled(self.hasLogin)
+        self.enableConnectButton()
 
     def connect(self):
-        defaultChannelFile = open('setting/default_channel', 'w')
-        defaultChannelFile.write(self.defaultChannelLineEdit.text())
-        defaultChannelFile.close()
-        self.clientIRC.nickname, self.clientIRC.password, self.clientIRC.refreshToken = GeneralLoginDialog.readLoginFile()
+        SettingManager.saveSetting(SettingManager.DEFAULT_CHANNEL_FILE, [self.defaultChannelLineEdit.text()])
         self.accept()
 
     def loadAndUpdateLogin(self):
-        self.nickname, self.oauthToken, self.refreshToken = GeneralLoginDialog.readLoginFile()
-        self.hasLogin = self.hasLoginCompleted()
+        [self.nickname, self.oauthToken, self.refreshToken] = SettingManager.getSettingFileContent(SettingManager.LOGIN_FILE)
+        self.hasLogin = True
         self.updateUsername()
 
     def changeAccount(self):

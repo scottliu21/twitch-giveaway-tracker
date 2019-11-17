@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QDialog, QPushButton, QLabel , QVBoxLayout, QApplication, QGraphicsOpacityEffect
+from PyQt5.QtWidgets import QDialog, QLabel , QVBoxLayout, QApplication
 from PyQt5.QtCore import Qt, QPropertyAnimation, QEasingCurve
 import time
 import math

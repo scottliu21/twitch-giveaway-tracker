@@ -35,7 +35,6 @@ class SettingDialog(QDialog):
         self.settingList.addItem("Colors")
         self.layout.addWidget(ColorsWidget(self))
         self.settingList.addItem("Macros")
-        self.settingList.addItem("Logout")
         self.settingList.addItem("OBS")
         self.settingList.addItem("Notification")
         self.layout.addWidget(NotificationWidget(self))

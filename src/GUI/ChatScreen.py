@@ -6,6 +6,7 @@ from GUI.ChatTab import ChatTab
 from Util.JSONDecoder import JSONDecoder
 from GUI.WhisperChat import WhisperChat
 from PyQt5.QtCore import pyqtSignal
+from Util.SettingManager import SettingManager
 from Util.NotificationManager import NotificationManager
 
 class ChatScreen(QTabWidget):
@@ -15,9 +16,8 @@ class ChatScreen(QTabWidget):
         super(ChatScreen, self).__init__(parent)
         self.showMessage = True
         self.chatUI = parent
-        file = open('setting/MainSetting', 'r')
-        self.font = QFont(file.readline().strip(), int(file.readline().strip()), -1, False)
-        file.close()
+        settings = SettingManager.getSettingFileContent(SettingManager.MAIN_SETTING_FILE)
+        self.font = QFont(settings[0], int(settings[1]), -1, False)
         self.jsonDecoder = JSONDecoder()
         self.tabs = {}
         self.clientIRC = ClientIRC(self)
@@ -30,13 +30,7 @@ class ChatScreen(QTabWidget):
         self.newWhisperSignal.connect(self.newWhisper)
 
     def parseListFromDefaultChannelFile(self):
-        try:
-            defaultChannelFile = open('setting/default_channel', 'r')
-            line = defaultChannelFile.readline().replace(" ", "")
-            defaultChannelFile.close()
-            return line.split(",")
-        except FileNotFoundError:
-            return []
+        return SettingManager.getSettingFileContent(SettingManager.DEFAULT_CHANNEL_FILE)[0].replace(" ", "").split(",")
 
     def joinDefaultChannel(self):
         self.joinMultipleChannel(self.parseListFromDefaultChannelFile())

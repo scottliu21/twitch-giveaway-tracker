@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import QDialog, QPushButton, QLabel , QVBoxLayout
 from PyQt5.QtCore import Qt, pyqtSignal, QThread
 from PyQt5.Qt import QApplication
+from Util.SettingManager import  SettingManager
 import webbrowser
 import urllib.parse
 import http.server
@@ -62,7 +63,6 @@ class LoginDialog(QDialog):
             self.serverThread.start()
 
     def requestAccepted(self, token):
-        print(token)
         self.loginChanged = True
         self.hasLogin = True
         response = requests.post(self.oauthTokenURL.replace("REPLACE", token))
@@ -70,7 +70,7 @@ class LoginDialog(QDialog):
         refreshToken = response.json()['refresh_token']
         response = requests.get(self.VALIDATE_URL, headers={"Authorization": "OAuth " + oauthToken})
         self.nickname = response.json()['login']
-        self.generalLoginDialog.writeLoginFile(self.nickname, oauthToken, refreshToken)
+        SettingManager.saveSetting(SettingManager.LOGIN_FILE, [self.nickname, "oauth:" + oauthToken, refreshToken])
         self.updateUsername()
 
     def closeEvent(self, event):

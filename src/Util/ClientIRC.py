@@ -4,6 +4,7 @@ import time
 import re
 from GUI.SubWindows.GeneralLoginDialog import GeneralLoginDialog
 from Util.SystemMessageProcessor import SystemMessageProcessor
+from Util.SettingManager import SettingManager
 
 
 class ClientIRC:
@@ -14,13 +15,12 @@ class ClientIRC:
         self.refreshTimer = 0
 
         self.chatScreen = chatScreen
-        if not GeneralLoginDialog.hasLoginCompleted():
+        if not SettingManager.checkLoginFilesAreCompleted() or GeneralLoginDialog.reFreshTokenAndGetLogin() is None:
             generalDialog = GeneralLoginDialog(self)
             generalDialog.exec()
-            if not GeneralLoginDialog.hasLoginCompleted():
+            if not SettingManager.checkLoginFilesAreCompleted():
                 self.chatScreen.chatUI.centralWidget.mainWindow.close()
-        else:
-            self.nickname, self.password, self.refreshToken = GeneralLoginDialog.getLogin()
+        [self.nickname, self.password, self.refreshToken] = SettingManager.getSettingFileContent(SettingManager.LOGIN_FILE)
         self.receiveSocket = socket.socket()
         self.sendSocket = socket.socket()
         self.receiveSocketRunning = False
@@ -36,10 +36,12 @@ class ClientIRC:
         generalLoginDialog.exec()
 
     def reconnect(self):
-        while self.chatScreen.count() > 0:
-            self.chatScreen.closeTab(False)
-        self.nickname, self.password, self.refreshToken = GeneralLoginDialog.readLoginFile()
-        self.reLogin()
+        old_nickName = self.nickname
+        [self.nickname, self.password, self.refreshToken] = SettingManager.getSettingFileContent(SettingManager.LOGIN_FILE)
+        if old_nickName != self.nickname:
+            while self.chatScreen.count() > 0:
+                self.chatScreen.closeTab(False)
+            self.reLogin()
         self.chatScreen.joinDefaultChannel()
 
     def closeClientIRC(self):

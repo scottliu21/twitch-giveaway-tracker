@@ -1,15 +1,17 @@
-import sys
-from PyQt5.QtWidgets import QMainWindow, QApplication
+from PyQt5.QtWidgets import QMainWindow
 from PyQt5.QtCore import QPoint, Qt
 from GUI.CentralWidget import CentralWidget
 from GUI.MenuBar import MenuBar
 from Util.CacheManager import CacheManager
+from Util.SettingManager import SettingManager
 import os.path
 
 class MainWindow(QMainWindow):
     def __init__(self):
         if not os.path.exists(CacheManager.DIRECTORY):
             os.mkdir(CacheManager.DIRECTORY)
+        if not SettingManager.checkBasicSettingFilesCompletion():
+            SettingManager.setUpBasicSettingFiles()
         super().__init__()
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.setWindowTitle('Twitch chat')
@@ -20,10 +22,8 @@ class MainWindow(QMainWindow):
         self.setGeometry(self.left, self.top, self.width, self.height)
         self.centralWidget = CentralWidget(self)
         self.setCentralWidget(self.centralWidget)
-
         menu = MenuBar(self)
         self.setMenuBar(menu)
-
         self.show()
 
     def getPopUpPosition(self, x, y):
@@ -36,8 +36,3 @@ class MainWindow(QMainWindow):
         #leave all channel
         #clear cache
         event.accept()
-
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    ex = MainWindow()
-    sys.exit(app.exec_())
