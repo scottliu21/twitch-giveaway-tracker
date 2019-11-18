@@ -1,10 +1,13 @@
 from GUI.SubWindows.NotificationDialog import NotificationDialog
 from PyQt5.QtCore import QTimer
 from PyQt5.Qt import QSound, QFont
+from Util.SettingManager import SettingManager
 import time
 
-
+# import notificationManager
+# then use NotificationManager.instance.showNotification
 class NotificationManager:
+    instance = None
     def __init__(self, chatScreen):
         self.notifications = []
         self.schedule = []
@@ -15,6 +18,7 @@ class NotificationManager:
         self.timer.setSingleShot(True)
         self.timer.timeout.connect(self.notificationExpiresFadeout)
         self.updateSetting()
+        NotificationDialog.instance = self
 
 
     def removeFromScheduleByAssignID(self, assignID):
@@ -46,11 +50,11 @@ class NotificationManager:
             self.notifications[i].moveUpByOne()
 
     def updateSetting(self):
-        file = open('setting/NotificationSetting', 'r')
-        self.font = QFont(file.readline().strip(), int(file.readline().strip()), -1, False)
-        self.chatScreen.chatUI.centralWidget.mainWindow.setStyleSheet("QLabel#NotificationLabel { background-color : " + file.readline().strip() +  "; color : " + file.readline().strip() + "; }")
-        self.qSound = QSound(file.readline().strip())
-        file.close()
+        settings = SettingManager.getSettingFileContent(SettingManager.NOTIFICATION_SETTING_FILE)
+        self.font = QFont(settings[0], int(settings[1]), -1, False)
+        self.chatScreen.chatUI.centralWidget.mainWindow.setStyleSheet("QLabel#NotificationLabel { background-color : " + settings[2] +  "; color : " + settings[3] + "; }")
+        self.qSound = QSound(settings[4])
+
 
     def closeNotification(self, assignID):
         index = self.notifications.index(assignID)
