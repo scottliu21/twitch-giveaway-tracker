@@ -12,15 +12,20 @@ class User_Test(unittest.TestCase):
         userB = UserListEntry("b")
         self.assertNotEqual(userA, userB)
 
-    def test_greater(self):
+    def test_less(self):
         userA = UserListEntry("@a")
         userB = UserListEntry("b")
-        self.assertNotEqual(userA, userB)
+        self.assertTrue(userA < userB)
 
-    def test_less(self):
+    def test_greater(self):
         userA = UserListEntry("~a")
         userB = UserListEntry("%a")
-        self.assertEqual(userA, userB)
+        self.assertTrue(userA > userB)
+
+    def test_equal(self):
+        userA = UserListEntry("%a")
+        userB = UserListEntry("%a")
+        self.assertTrue(userA == userB)
 
 if __name__ == '__main__':
     unittest.main()

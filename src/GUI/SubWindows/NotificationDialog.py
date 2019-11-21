@@ -21,8 +21,6 @@ class NotificationDialog(QDialog):
         self.height = math.floor(QApplication.desktop().screenGeometry().bottomRight().y() / 10)
         self.width = math.floor(QApplication.desktop().screenGeometry().bottomRight().x() / 6)
         self.setGeometry(self.right - self.width, self.height * positionNumber, self.width, self.height - 10)
-        print(self.assignID, self.right - self.width, self.height * positionNumber, self.width, self.height * (positionNumber + 1) - 10)
-        print(self.assignID, self.geometry())
 
         label = QLabel()
         label.setObjectName("NotificationLabel")

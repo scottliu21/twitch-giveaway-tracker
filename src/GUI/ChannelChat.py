@@ -2,12 +2,15 @@ from Util.MessageProcessor import MessageProcessor
 from GUI.Chat.ChatThread import ChatThread
 from PyQt5.QtWidgets import QTextBrowser
 from Util.SettingManager import SettingManager
+from PyQt5.QtCore import pyqtSignal
 
 class ChannelChat(QTextBrowser):
+    newMessageSignal = pyqtSignal()
+    newNotificationSignal = pyqtSignal()
     def __init__(self, chatTab, channelName, jsonDecoder):
         super(ChannelChat, self).__init__(chatTab)
         self.chatTab = chatTab
-        self.messageProcessor = MessageProcessor(jsonDecoder, self.chatTab.clientIRC.chatScreen.font.pointSizeF() / 12 * 16)
+        self.messageProcessor = MessageProcessor(jsonDecoder, self.chatTab.clientIRC.chatScreen.font.pointSizeF() / 12 * 16, self.newNotificationSignal)
         self.chatThread = ChatThread(self, channelName)
         self.channelName = channelName
         self.chatThread.start()
@@ -26,9 +29,8 @@ class ChannelChat(QTextBrowser):
         #add wheel event
 
     def closeChat(self):
-        self.chatThread.stopThread()
-        self.chatThread.messageToBeProcessed.put("")
-        self.chatThread.join()
+        self.chatThread.terminate()
+        self.chatThread.wait()
 
     def checkClick(self, link):
         print(link.toString())

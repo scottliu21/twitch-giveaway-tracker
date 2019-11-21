@@ -84,11 +84,12 @@ class ClientIRC:
                 response = response.decode('utf-8')
                 if self.isHoldingMessage:
                     response = self.heldMessage + response
-                    self.isHoldingMessage = False
                 if response.endswith('\r\n') == False:
                     self.isHoldingMessage = True
                     self.heldMessage = response[response.rfind('\r\n'):]
                     response = response[0:response.rfind('\r\n')]
+                else:
+                    self.isHoldingMessage = False
 
                 for responses in response.split('\r\n'):
                     message = re.search(self.channelMessagePattern, responses)

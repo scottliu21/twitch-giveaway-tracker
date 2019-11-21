@@ -1,24 +1,23 @@
-import threading
+from PyQt5.QtCore import QThread, pyqtSignal
 from queue import Queue
 
-class ChatThread(threading.Thread):
-    def __init__(self, channelChat, channelName):
-        super().__init__(target=self.run, args=('',))
+class ChatThread(QThread):
+    newNotificationSignal = pyqtSignal()
+    def __init__(self, channelChat, channelName, parent=None):
+        QThread.__init__(self, parent)
         self.channelChat = channelChat
         self.messageProcessor = channelChat.messageProcessor
         self.userList = channelChat.chatTab.userList
-        self.daemon = True
-        self.enabled = True
         self.messageToBeProcessed = Queue()
-        self.setName(channelName + 'MessageProcessorThread')
-
-    def stopThread(self):
-        self.enabled = False
+        self.setObjectName(channelName)
 
     def processMessage(self, message):
         self.messageToBeProcessed.put(message)
 
     def run(self):
-        while self.enabled:
+        message = ""
+        self.channelChat.newMessageSignal.connect(lambda: self.channelChat.newMessage(message))
+        while True:
             message = self.messageToBeProcessed.get()
-            self.messageProcessor.processMessage(message, self.channelChat, self.userList)
+            message = self.messageProcessor.processMessage(message, self.userList)
+            self.channelChat.newMessageSignal.emit()

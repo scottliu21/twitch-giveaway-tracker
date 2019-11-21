@@ -22,7 +22,6 @@ class SystemMessageProcessor:
         self.internetRelatedThread.start()
 
     def processMessage(self, message):
-        print(message)
         parsedResult = []
         if ' PART ' in message:
             parsedResult.append("Part")

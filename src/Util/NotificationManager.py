@@ -4,10 +4,9 @@ from PyQt5.Qt import QSound, QFont
 from Util.SettingManager import SettingManager
 import time
 
-# import notificationManager
-# then use NotificationManager.instance.showNotification
 class NotificationManager:
     instance = None
+
     def __init__(self, chatScreen):
         self.notifications = []
         self.schedule = []
@@ -18,7 +17,7 @@ class NotificationManager:
         self.timer.setSingleShot(True)
         self.timer.timeout.connect(self.notificationExpiresFadeout)
         self.updateSetting()
-        NotificationDialog.instance = self
+        NotificationManager.instance = self
 
 
     def removeFromScheduleByAssignID(self, assignID):

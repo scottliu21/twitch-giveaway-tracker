@@ -15,7 +15,8 @@ class SystemMessageThread(threading.Thread):
         self.enabled = False
 
     def newMessage(self, message):
-        self.messageToBeProcessed.put(message)
+        if message.rstrip() != "":
+            self.messageToBeProcessed.put(message)
 
     def run(self):
         while self.enabled:
