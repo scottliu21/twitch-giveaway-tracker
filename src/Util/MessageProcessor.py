@@ -1,7 +1,9 @@
 import re
 import html
+from Util.AnalyzeChatForKeyword import AnalyzeChatForKeyword
 from Util.CacheManager import CacheManager
 from Util.NotificationManager import NotificationManager
+from Util.SettingManager import SettingManager
 
 class MessageProcessor:
     EMOTE_PATTERN = re.compile('(\d+):(\d+-\d+,?)+')
@@ -13,28 +15,27 @@ class MessageProcessor:
     BADGE_SIZE =""
 
     HTML_ESCAPE_TABLE = {"&": "&amp;", '"': "&quot;", "'": "&apos;", ">": "&gt;", "<": "&lt;", }
-    def __init__(self, jsonDecoder, imgSize, signal):
+    def __init__(self, jsonDecoder, imgSize):
         self.jsonDecoder = jsonDecoder
         MessageProcessor.INTERNET_RELATED_THREAD = jsonDecoder.internetRelatedThread
         self.bitsBadge = {}
         self.subBadge = {}
+        #creating object to check for keyword
+        self.isGiveawayObj = AnalyzeChatForKeyword()
+
         #to be changed to using image cache later
         MessageProcessor.IMAGE_SIZE = 'height="' + str(int(imgSize*2)) + '"'
         MessageProcessor.BADGE_SIZE = 'height="' + str(int(imgSize*1.5)) + '"'
-        self.signal = signal
-        self.signal.connect(lambda: NotificationManager.instance.showNotification(self.highlightEvent, self.channelName, self.highlightMessage))
 
-
-    # call this for notification
-    def showNotification(self, highlightEvent, channelName, highlightMessage):
-        self.highlightEvent = highlightEvent
-        self.channelName = channelName
-        self.highlightMessage = highlightMessage
-        self.signal.emit()
-
-    def processMessage(self, response, userList):
+    def processMessage(self, response, channelChat, userList):
         message = re.search(MessageProcessor.MESSAGE_PATTERN, response)
+        print(response)
+        print(message)
         if message:
+
+            if self.isGiveawayObj.isFound(SettingManager.getUsername(), message.group('message')):
+                print("GIVEAWAY FOUND!!!!!!!!!!!!!!!!!!!")#do pop up later
+
             finalMessage = '[' + message.group('time') + '] '
             nameLink = message.group('username')
             user = userList.nickList.get(nameLink, None)
@@ -70,7 +71,8 @@ class MessageProcessor:
                 userMessage = '<font color="' + user.color + '">' + userMessage + "</font>"
             finalMessage += userMessage
             #emotes = to be done
-            return finalMessage
+            print(finalMessage)
+            channelChat.newMessage(finalMessage)
 
 
     @staticmethod
