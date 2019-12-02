@@ -89,6 +89,7 @@ class LoginDialog(QDialog):
         clipboard.text()
         self.getOauthToken()
 
+
 class ServerQThread(QThread):
     acceptedSignal = pyqtSignal()
     instance = None

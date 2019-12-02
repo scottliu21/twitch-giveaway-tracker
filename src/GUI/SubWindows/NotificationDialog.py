@@ -3,12 +3,14 @@ from PyQt5.QtCore import Qt, QPropertyAnimation, QEasingCurve
 import time
 import math
 
+
 class NotificationDialog(QDialog):
     NOTIFICATION_LIVETIME = 2000
     def __init__(self, assignID, eventDescription, channelName, message, positionNumber, font, notificationManager):
         super(NotificationDialog, self).__init__(notificationManager.chatScreen.chatUI.centralWidget.mainWindow)
         self.setWindowFlag(Qt.WindowStaysOnTopHint)
         self.assignID = assignID
+        self.setAttribute(Qt.WA_DeleteOnClose)
         self.mainWindow = notificationManager.chatScreen.chatUI.centralWidget.mainWindow
         self.notificationManager = notificationManager
         self.eventDescription = eventDescription
@@ -22,18 +24,18 @@ class NotificationDialog(QDialog):
         self.width = math.floor(QApplication.desktop().screenGeometry().bottomRight().x() / 6)
         self.setGeometry(self.right - self.width, self.height * positionNumber, self.width, self.height - 10)
 
-        label = QLabel()
-        label.setObjectName("NotificationLabel")
-        label.setText("\t" + eventDescription + "\n\t" + channelName + "\n\t" + message)
-        label.setFont(font)
-        label.mouseReleaseEvent = self.clicked
-        label.setMouseTracking(True)
-        label.leaveEvent = self.mouseLeave
-        label.enterEvent = self.mouseEnter
+        self.label = QLabel()
+        self.label.setObjectName("NotificationLabel")
+        self.label.setText("\t" + eventDescription + "\n\t" + channelName + "\n\t" + message)
+        self.label.setFont(font)
+        self.label.mouseReleaseEvent = self.clicked
+        self.label.setMouseTracking(True)
+        self.label.leaveEvent = self.mouseLeave
+        self.label.enterEvent = self.mouseEnter
 
         layout1 = QVBoxLayout()
         layout1.setContentsMargins(0, 0, 0, 0)
-        layout1.addWidget(label)
+        layout1.addWidget(self.label)
         self.setLayout(layout1)
         self.setWindowModality(Qt.NonModal)
         self.animation = QPropertyAnimation(self, b"windowOpacity")
@@ -66,7 +68,7 @@ class NotificationDialog(QDialog):
 
     def clicked(self, event):
         if event.button() == Qt.RightButton:
-            self.mainWindow.centralWidget.chatUI.chatScreen.joinChannel(self.channelName)
+            self.notificationManager.chatScreen.joinChannel(self.channelName)
         self.notificationManager.closeNotification(self.assignID)
         self.close()
 
