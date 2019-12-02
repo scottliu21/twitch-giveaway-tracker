@@ -1,2 +1,4 @@
 requests
 PyQt5
+pytest-qt
+pytest

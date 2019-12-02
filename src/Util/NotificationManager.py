@@ -28,7 +28,6 @@ class NotificationManager:
 
     def addToSchedule(self, notificationDialog):
         self.schedule.append(notificationDialog)
-        print(self.schedule[0])
         if not self.isTimerRunning:
             self.getNewTimerJob()
 

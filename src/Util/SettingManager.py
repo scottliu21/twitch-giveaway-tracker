@@ -4,11 +4,11 @@ import os
 # An easy class to access settings everywhere
 class SettingManager:
     SETTING_DIRECTORY = "setting/"
-    MAIN_SETTING_FILE = "setting/MainSetting"
-    NOTIFICATION_SETTING_FILE = "setting/NotificationSetting"
-    CHAT_CSS_FILE = "setting/ChatCSS"
-    DEFAULT_CHANNEL_FILE = "setting/default_channel"
-    LOGIN_FILE = "setting/login"
+    MAIN_SETTING_FILE = SETTING_DIRECTORY + "MainSetting"
+    NOTIFICATION_SETTING_FILE = SETTING_DIRECTORY + "NotificationSetting"
+    CHAT_CSS_FILE = SETTING_DIRECTORY + "ChatCSS"
+    DEFAULT_CHANNEL_FILE = SETTING_DIRECTORY + "default_channel"
+    LOGIN_FILE = SETTING_DIRECTORY + "login"
 
     @staticmethod
     def setUpBasicSettingFiles():

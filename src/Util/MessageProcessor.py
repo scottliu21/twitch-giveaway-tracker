@@ -6,10 +6,10 @@ from Util.NotificationManager import NotificationManager
 from Util.SettingManager import SettingManager
 
 class MessageProcessor:
-    EMOTE_PATTERN = re.compile('(\d+):(\d+-\d+,?)+')
-    EMOTE_RANGE = re.compile('((\d+)-(\d+)),?')
+    EMOTE_PATTERN = re.compile(r'(\d+):(\d+-\d+,?)+')
+    EMOTE_RANGE = re.compile(r'((\d+)-(\d+)),?')
     EMOTE_PREFIX = 'http://static-cdn.jtvnw.net/emoticons/v3/'
-    MESSAGE_PATTERN = re.compile('(?P<time>\d\d:\d\d:\d\d).*badges=(?P<badges>[^;]*);(?P<bits>bits=(?P<bitsAmount>\d+).*)?color=(?P<color>[^;]*);.*display-name=(?P<displayname>(?P<displaynameOtherLanguage>[^A-Za-z]*)|(?P<displaynameCapitalization>[^;]*));.*emotes=(?P<emotes>[^;]*);.*user-id=(?P<userID>\d+);.*:(?P<username>[^!]+)!.*#(?P<channel>[^ ]+) :(?P<action> ACTION )?(?P<message>.*)')
+    MESSAGE_PATTERN = re.compile(r'(?P<time>\d\d:\d\d:\d\d).*badges=(?P<badges>[^;]*);(?P<bits>bits=(?P<bitsAmount>\d+).*)?color=(?P<color>[^;]*);.*display-name=(?P<displayname>(?P<displaynameOtherLanguage>[^A-Za-z]*)|(?P<displaynameCapitalization>[^;]*));.*emotes=(?P<emotes>[^;]*);.*user-id=(?P<userID>\d+);.*:(?P<username>[^!]+)!.*#(?P<channel>[^ ]+) :(?P<action> ACTION )?(?P<message>.*)')
     INTERNET_RELATED_THREAD = None
     IMAGE_SIZE = ""
     BADGE_SIZE =""
@@ -21,7 +21,8 @@ class MessageProcessor:
         self.bitsBadge = {}
         self.subBadge = {}
         #creating object to check for keyword
-        self.isGiveawayObj = AnalyzeChatForKeyword()
+        # it's giving me errors so I commented it out
+        # self.isGiveawayObj = AnalyzeChatForKeyword()
 
         #to be changed to using image cache later
         MessageProcessor.IMAGE_SIZE = 'height="' + str(int(imgSize*2)) + '"'
@@ -40,8 +41,8 @@ class MessageProcessor:
     def processMessage(self, response, userList):
         message = re.search(MessageProcessor.MESSAGE_PATTERN, response)
         if message:
-            if self.isGiveawayObj.isFound(SettingManager.getUsername(), message.group('message')):
-                print("GIVEAWAY FOUND!!!!!!!!!!!!!!!!!!!")#do pop up later
+            # if self.isGiveawayObj.isFound(SettingManager.getUsername(), message.group('message')):
+            #     print("GIVEAWAY FOUND!!!!!!!!!!!!!!!!!!!")#do pop up later
 
             finalMessage = '[' + message.group('time') + '] '
             nameLink = message.group('username')
@@ -78,6 +79,7 @@ class MessageProcessor:
                 userMessage = '<font color="' + user.color + '">' + userMessage + "</font>"
             finalMessage += userMessage
             #emotes = to be done
+            print(finalMessage)
             return finalMessage
 
 
