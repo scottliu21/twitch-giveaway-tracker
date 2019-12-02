@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import QAction, QMenuBar
 from GUI.SubWindows.JoinChannelDialog import JoinChannelDialog
+from GUI.SubWindows.JoinGameDialog import JoinGameDialog
 from GUI.SubWindows.SettingDialog import SettingDialog
 
 class MenuBar(QMenuBar):
@@ -12,6 +13,7 @@ class MenuBar(QMenuBar):
         self.fileMenu = self.addMenu('&Bot')
         self.fileMenu = self.addMenu('&Channels')
         self.setUpChannelAction()
+        self.setUpChannelAction2()
         self.fileMenu = self.addMenu('&Dev')
         self.setUpDevAction()
 
@@ -31,9 +33,15 @@ class MenuBar(QMenuBar):
         SettingDialog(self.mainWindow)
 
     def setUpChannelAction(self):
-        joinAction = QAction('&JoinChannel', self)
+        joinAction = QAction('&Join Channel', self)
         joinAction.setShortcut('Ctrl+J')
         joinAction.triggered.connect(self.joinChannel)
+        self.fileMenu.addAction(joinAction)
+
+    def setUpChannelAction2(self):
+        joinAction = QAction('&Join Channel by Game', self)
+        joinAction.setShortcut('Ctrl+H')
+        joinAction.triggered.connect(self.joinGame)
         self.fileMenu.addAction(joinAction)
 
     def setUpDevAction(self):
@@ -49,3 +57,6 @@ class MenuBar(QMenuBar):
     def joinChannel(self):
         JoinChannelDialog(self.mainWindow.centralWidget.chatUI)
         #self.mainWindow.centralWidget.chatUI.joinChannel()
+
+    def joinGame(self):
+        JoinGameDialog(self.mainWindow.centralWidget.chatUI)
