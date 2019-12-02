@@ -15,7 +15,7 @@ class MessageProcessor:
     BADGE_SIZE =""
 
     HTML_ESCAPE_TABLE = {"&": "&amp;", '"': "&quot;", "'": "&apos;", ">": "&gt;", "<": "&lt;", }
-    def __init__(self, jsonDecoder, imgSize):
+    def __init__(self, jsonDecoder, imgSize, signal):
         self.jsonDecoder = jsonDecoder
         MessageProcessor.INTERNET_RELATED_THREAD = jsonDecoder.internetRelatedThread
         self.bitsBadge = {}
@@ -26,13 +26,20 @@ class MessageProcessor:
         #to be changed to using image cache later
         MessageProcessor.IMAGE_SIZE = 'height="' + str(int(imgSize*2)) + '"'
         MessageProcessor.BADGE_SIZE = 'height="' + str(int(imgSize*1.5)) + '"'
+        self.signal = signal
+        self.signal.connect(lambda: NotificationManager.instance.showNotification(self.highlightEvent, self.channelName, self.highlightMessage))
 
-    def processMessage(self, response, channelChat, userList):
+
+    # call this
+    def showNotification(self, highlightEvent, channelName, highlightMessage):
+        self.highlightEvent = highlightEvent
+        self.channelName = channelName
+        self.highlightMessage = highlightMessage
+        self.signal.emit()
+
+    def processMessage(self, response, userList):
         message = re.search(MessageProcessor.MESSAGE_PATTERN, response)
-        print(response)
-        print(message)
         if message:
-
             if self.isGiveawayObj.isFound(SettingManager.getUsername(), message.group('message')):
                 print("GIVEAWAY FOUND!!!!!!!!!!!!!!!!!!!")#do pop up later
 
@@ -71,8 +78,7 @@ class MessageProcessor:
                 userMessage = '<font color="' + user.color + '">' + userMessage + "</font>"
             finalMessage += userMessage
             #emotes = to be done
-            print(finalMessage)
-            channelChat.newMessage(finalMessage)
+            return finalMessage
 
 
     @staticmethod
