@@ -40,9 +40,10 @@ class MessageProcessor:
 
     def processMessage(self, response, userList):
         message = re.search(MessageProcessor.MESSAGE_PATTERN, response)
-        if message:
+        #coby's code below
+        if message and not self.isGiveawayObj.isFound:
             if self.isGiveawayObj.checkIfFound(SettingManager.getUsername(), message.group('message')):
-                showNotification("Giveaway Detected", message.group('channel'), message.group('message'))
+                self.showNotification("Giveaway Detected", message.group('channel'), message.group('message'))
 
             finalMessage = '[' + message.group('time') + '] '
             nameLink = message.group('username')
