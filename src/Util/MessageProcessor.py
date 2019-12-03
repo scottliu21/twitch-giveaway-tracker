@@ -40,10 +40,19 @@ class MessageProcessor:
 
     def processMessage(self, response, userList):
         message = re.search(MessageProcessor.MESSAGE_PATTERN, response)
-        #coby's code below
+        
         if message and not self.isGiveawayObj.isFound:
+            #coby's code below
             if self.isGiveawayObj.checkIfFound(SettingManager.getUsername(), message.group('message')):
                 self.showNotification("Giveaway Detected", message.group('channel'), message.group('message'))
+            ##
+
+            #Checks if client lost a giveaway
+            if MessageProcessor.Determine_Giveaway_Loss(message.group('username'), message.group('message')) == 1:
+                self.showNotification("Oh no...", message.group('channel'), "You have lost the giveaway")
+            elif MessageProcessor.Determine_Giveaway_Loss(message.group('username'), message.group('message')) == 2: 
+                self.showNotification("Congrates", message.group('channel'), "You have won the giveaway!!!")
+            ###
 
             finalMessage = '[' + message.group('time') + '] '
             nameLink = message.group('username')
@@ -118,6 +127,34 @@ class MessageProcessor:
             result = re.search(MessageProcessor.EMOTE_PATTERN, emote)
         return emoteArray
 
+    #                for the giveaway
+    # message.group('message') => message from bot
+    # self.nickname = nickname => client username
+    # showNotification() => for telling client they either won or lost
+
+    @staticmethod
+    def Determine_Giveaway_Loss (user, message):
+        #Change this later
+        if user == 'Nightbot':
+            if message.find(SettingManager.getUsername()) != -1: #need the username of the client
+                return 1
+            else:
+                return 2
+        #Check for formating of StreamElements
+        elif user == 'StreamElements':
+            if word == message.find('@' + SettingManager.getUsername()) != -1: #need the username of the client
+                return 1
+            else:
+               return 2
+        #Change this later
+        elif user == "dinger4u":
+            if message.find("loss") != -1:
+                return 1
+            elif message.find("won") != -1:
+                return 2
+        else:
+            return 3
+    ##
     def setBadgesIcon(self, badges):
         if badges.get('subscriber', None) is not None:
             for badge in badges['subscriber']:
