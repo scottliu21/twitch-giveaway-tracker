@@ -22,7 +22,7 @@ class MessageProcessor:
         self.subBadge = {}
         #creating object to check for keyword
         # it's giving me errors so I commented it out
-        # self.isGiveawayObj = AnalyzeChatForKeyword()
+        self.isGiveawayObj = AnalyzeChatForKeyword()
 
         #to be changed to using image cache later
         MessageProcessor.IMAGE_SIZE = 'height="' + str(int(imgSize*2)) + '"'
@@ -41,8 +41,8 @@ class MessageProcessor:
     def processMessage(self, response, userList):
         message = re.search(MessageProcessor.MESSAGE_PATTERN, response)
         if message:
-            # if self.isGiveawayObj.isFound(SettingManager.getUsername(), message.group('message')):
-            #     print("GIVEAWAY FOUND!!!!!!!!!!!!!!!!!!!")#do pop up later
+            if self.isGiveawayObj.checkIfFound(SettingManager.getUsername(), message.group('message')):
+                showNotification("Giveaway Detected", message.group('channel'), message.group('message'))
 
             finalMessage = '[' + message.group('time') + '] '
             nameLink = message.group('username')
