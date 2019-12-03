@@ -1,18 +1,26 @@
 class AnalyzeChatForKeyword():
-    def __init__(self, channel):
-        self.channel = channel
+    def __init__(self):
         self.count = 0
-        self.Keywords = [
-            "giveaway",
-            "give away",
-            "prize"
-            ]
-    #list of keywords
-    def isAGiveaway():
-        self.message = newMessage
+        #list of keywords
+        self.Keywords = []
+        self.Dict = {}
+
+
+    #isFound logs all of message into a dictionary as well as checks for instances of keywords
     def isFound(self, user, message):
         message = message.lower()
-        #checks if user is a NightBot and if any string in Keyword is found in message
+        #checks if user is a NightBot and if any string in Keyword is found in message, 
+        # or if dictionary is exceeded
+        for i in message:
+            if not self.Dict.has_key(message[i]):
+                self.Dict[i] = 1
+            else:
+                val = self.Dict.pop(i)
+                self.Dict[i] = val + 1
+                if val + 1 > 50:
+                    return True
+
+
         if user == "NightBot":
             for i in range(len(self.Keywords)):
                 if(self.Keywords[i]) in message:
