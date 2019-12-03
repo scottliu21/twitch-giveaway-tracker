@@ -50,6 +50,11 @@ class MenuBar(QMenuBar):
         hideMessages.setChecked(False)
         hideMessages.triggered.connect(self.toggleMessageButton)
         self.fileMenu.addAction(hideMessages)
+        notificationTest = QAction('&Test Notification', self)
+        notificationTest.setCheckable(False)
+        notificationTest.setChecked(False)
+        notificationTest.triggered.connect(lambda: self.mainWindow.centralWidget.chatUI.chatScreen.notificationManager.showNotification("testEvent", "testChannel", "testMessage"))
+        self.fileMenu.addAction(notificationTest)
 
     def toggleMessageButton(self):
         self.mainWindow.centralWidget.chatUI.chatScreen.hideMessage()
