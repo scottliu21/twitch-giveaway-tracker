@@ -14,12 +14,15 @@ class AnalyzeChatForKeyword():
     def isFound(self):
         return self.isFound
     #isFound logs all of message into a dictionary as well as checks for instances of keywords
+    def reset(self):
+        self.isFound = 0
+
     def checkIfFound(self, user, message):
         message = message.lower()
         #checks if user is a NightBot and if any string in Keyword is found in message, 
         # or if dictionary is exceeded
         for i in message:
-            if not self.Dict.has_key(message[i]):
+            if not self.Dict.get(i):
                 self.Dict[i] = 1
             else:
                 val = self.Dict.pop(i)
