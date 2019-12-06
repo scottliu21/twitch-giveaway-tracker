@@ -111,7 +111,7 @@ class GeneralLoginDialog(QDialog):
         self.enableConnectButton()
 
     def connect(self):
-        SettingManager.saveSetting(SettingManager.DEFAULT_CHANNEL_FILE, [self.defaultChannelLineEdit.text()])
+        SettingManager.saveSetting(SettingManager.DEFAULT_CHANNEL_FILE, [self.defaultChannelLineEdit.text().lower()])
         self.accept()
 
     def loadAndUpdateLogin(self):
