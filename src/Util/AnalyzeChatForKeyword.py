@@ -27,7 +27,6 @@ class AnalyzeChatForKeyword():
             self.Dict.clear
         #checks if user is a NightBot and if any string in Keyword is found in message, 
         # or if dictionary is exceeded
-        print(self.Dict)
         split = message.split()
         for i in split:
             if not self.Dict.get(i):
