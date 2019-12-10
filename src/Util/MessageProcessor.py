@@ -40,57 +40,59 @@ class MessageProcessor:
 
     def processMessage(self, response, userList):
         message = re.search(MessageProcessor.MESSAGE_PATTERN, response)
-        
-        if message and not self.isGiveawayObj.isFound:
+
+        if not self.isGiveawayObj.isItFound():
             #coby's code below
             if self.isGiveawayObj.checkIfFound(SettingManager.getUsername(), message.group('message')):
                 self.showNotification("Giveaway Detected", message.group('channel'), message.group('message'))
             ##
-
+        if self.isGiveawayObj.isItFound():
             #Checks if client lost a giveaway
             if MessageProcessor.Determine_Giveaway_Loss(message.group('username'), message.group('message')) == 1:
                 self.showNotification("Oh no...", message.group('channel'), "You have lost the giveaway")
+                self.isGiveawayObj.reset()
             elif MessageProcessor.Determine_Giveaway_Loss(message.group('username'), message.group('message')) == 2: 
                 self.showNotification("Congrates", message.group('channel'), "You have won the giveaway!!!")
-            ###
+                self.isGiveawayObj.reset()
+        ###
 
-            finalMessage = '[' + message.group('time') + '] '
-            nameLink = message.group('username')
-            user = userList.nickList.get(nameLink, None)
-            if user is None:
-                userList.addUser(nameLink)
-                user = userList.nickList.get(nameLink)
-            if not user.hasSpoken:
-                user.hasSpoken = True
+        finalMessage = '[' + message.group('time') + '] '
+        nameLink = message.group('username')
+        user = userList.nickList.get(nameLink, None)
+        if user is None:
+            userList.addUser(nameLink)
+            user = userList.nickList.get(nameLink)
+        if not user.hasSpoken:
+            user.hasSpoken = True
+            userList.updateUser(user.nick, message.group('badges'), self.subBadge, self.bitsBadge, MessageProcessor.BADGE_SIZE)
+            user.updateUserColor(message.group('color'))
+        else:
+            if user.badges != message.group('badges'):
                 userList.updateUser(user.nick, message.group('badges'), self.subBadge, self.bitsBadge, MessageProcessor.BADGE_SIZE)
+        finalMessage += user.badgesImage
+        bits = 'group 3, to be done'
+        finalMessage += '<a href="' + nameLink + '" style="text-decoration:none" '
+        if message.group('color'):
+            if user.color != message.group('color') and message.group('color') != "000000":
                 user.updateUserColor(message.group('color'))
+        finalMessage += 'style="color:' + user.color + '">'
+        if message.group('displayname'):
+            if message.group('displaynameOtherLanguage'):
+                displayName = message.group('displaynameOtherLanguage') + ' (' + nameLink + ')'
             else:
-                if user.badges != message.group('badges'):
-                    userList.updateUser(user.nick, message.group('badges'), self.subBadge, self.bitsBadge, MessageProcessor.BADGE_SIZE)
-            finalMessage += user.badgesImage
-            bits = 'group 3, to be done'
-            finalMessage += '<a href="' + nameLink + '" style="text-decoration:none" '
-            if message.group('color'):
-                if user.color != message.group('color') and message.group('color') != "000000":
-                    user.updateUserColor(message.group('color'))
-            finalMessage += 'style="color:' + user.color + '">'
-            if message.group('displayname'):
-                if message.group('displaynameOtherLanguage'):
-                    displayName = message.group('displaynameOtherLanguage') + ' (' + nameLink + ')'
-                else:
-                    displayName = message.group('displaynameCapitalization')
-            else:
-                displayName = nameLink
-            displayName = '<b>' + displayName + ': </b></a>'
-            finalMessage += displayName
-            #if mentioned, elif group 12, also change user name if /me
-            userMessage = MessageProcessor.insertEmote(message.group('message'), message.group('emotes'))
-            if message.group('action') is not None:
-                userMessage = '<font color="' + user.color + '">' + userMessage + "</font>"
-            finalMessage += userMessage
-            #emotes = to be done
-            print(finalMessage)
-            return finalMessage
+                displayName = message.group('displaynameCapitalization')
+        else:
+            displayName = nameLink
+        displayName = '<b>' + displayName + ': </b></a>'
+        finalMessage += displayName
+        #if mentioned, elif group 12, also change user name if /me
+        userMessage = MessageProcessor.insertEmote(message.group('message'), message.group('emotes'))
+        if message.group('action') is not None:
+            userMessage = '<font color="' + user.color + '">' + userMessage + "</font>"
+        finalMessage += userMessage
+        #emotes = to be done
+        print(finalMessage)
+        return finalMessage
 
 
     @staticmethod
@@ -147,7 +149,7 @@ class MessageProcessor:
             else:
                return 2
         #Change this later
-        elif user == "dinger4u":
+        elif user == "cobyforrester":
             if message.find("loss") != -1:
                 return 1
             elif message.find("won") != -1:
